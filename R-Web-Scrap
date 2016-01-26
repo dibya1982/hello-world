@@ -1,0 +1,36 @@
+R source Code for http://ratemyisp.ie/ratings/
+library(rvest)
+mainurl <- "http://ratemyisp.ie/ratings/"
+finalUserRating <- matrix(data=NA, nrow = 1, ncol = 6)
+getlinks <- mainurl %>%
+read_html() %>%
+html_nodes("#sidebar ul#toprated li a")
+ links <- getlinks  %>%
+ html_attr("href")
+ Operators <- getlinks %>%
+ html_text()
+ for (i in 1:length(links)) {
+ url <- links[i]
+ reviews <- url %>%
+ read_html() %>%
+ html_nodes("#mainColumn #reviews")
+ dtlReview <- reviews %>%
+ html_nodes(".wrapper")
+ myusrRating <- dtlReview %>%
+ html_nodes("ul.ratings span.rating_value img") %>%
+ html_attr("alt")
+ usrRatingRaw <- myusrRating[seq(1, length(myusrRating), 5)]
+ usrRating <- matrix(usrRatingRaw, nrow = length(usrRatingRaw)/5, ncol = 5, byrow = TRUE)
+ x<-count(usrRating[,1])
+ if (nrow(x[x$x == 1,])!=0) pcount <- x[x$x == 1,][,2] else pcount <- 0
+ if (nrow(x[x$x == 2,])!=0) acount <- x[x$x == 2,][,2] else acount <- 0
+ if (nrow(x[x$x == 3,])!=0) gcount <- x[x$x == 3,][,2] else gcount <- 0
+ if (nrow(x[x$x == 4,])!=0) bcount <- x[x$x == 4,][,2] else bcount <- 0
+ if (nrow(x[x$x == 5,])!=0) tcount <- x[x$x == 5,][,2] else tcount <- 0
+ usrRatingWithOperator <- cbind(Operators[i],pcount,acount,gcount,bcount,tcount)
+ finalUserRating <- rbind(finalUserRating,usrRatingWithOperator)
+}
+ colnames(finalUserRating) <- c("Operators", "Poor", "Average", "Good", "Best", "Top")
+ data.frame(finalUserRating)  %>% View()
+ setwd("C:/Users/Dibyajyoti/Desktop")
+ write.csv(ISP_Rating, file = "ISP_Rating.csv")
